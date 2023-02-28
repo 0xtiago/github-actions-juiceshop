@@ -110,4 +110,5 @@ jobs:
       uses: mikepenz/action-junit-report@v3
       with:
         report_paths: '**/dastardly-report.xml' # You need to update this path if you pass in a different output filename to the Dastardly action
+        access-token: ${{ secrets.GITHUB_TOKEN }}
         require_tests: true
