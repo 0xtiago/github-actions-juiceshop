@@ -19,8 +19,8 @@ jobs:
 
     - name: JuiceShop - Build image
       run: |
-        docker pull docker.io/bkimminich/juice-shop:latest:${{ github.sha }}
-        docker run --rm -p 80:3000 docker.io/bkimminich/juice-shop:latest:${{ github.sha }}
+        docker pull bkimminich/juice-shop:latest:${{ github.sha }}
+        docker run --rm -p 80:3000 bkimminich/juice-shop:latest:${{ github.sha }}
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
