@@ -17,10 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: JuiceShop - Build image 
+    - name: JuiceShop - Build image
       run: |
         docker pull docker.io/bkimminich/juice-shop
-        #docker run --rm -p 80:3000 bkimminich/juice-shop:${{ github.sha }} .
+        docker run --rm -p 80:3000 bkimminich/juice-shop:${{ github.sha }} .
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
