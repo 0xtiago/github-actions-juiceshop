@@ -36,8 +36,8 @@ jobs:
         severity: 'CRITICAL,HIGH'
 
     - name: JuiceShop - Dastardly | Web Application Scanning
-      # run: |
-      #   docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest
+      run: |
+        docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
       uses: PortSwigger/dastardly-github-action@main
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
