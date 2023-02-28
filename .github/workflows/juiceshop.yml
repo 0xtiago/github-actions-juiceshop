@@ -25,7 +25,7 @@ jobs:
         docker pull bkimminich/juice-shop:latest
         docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
 
-      - name: JuiceShop - Dastardly | Web Application Scanning
+    - name: JuiceShop - Dastardly | Web Application Scanning
       uses: PortSwigger/dastardly-github-action@main
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
