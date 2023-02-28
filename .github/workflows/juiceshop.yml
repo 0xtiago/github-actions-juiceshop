@@ -20,6 +20,7 @@ jobs:
     - name: JuiceShop - Build image
       run: |
         sudo apt update ; sudo apt install net-tools -y
+        ifconfig
         ping -c 4 localhost
         docker pull bkimminich/juice-shop:latest
         docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
