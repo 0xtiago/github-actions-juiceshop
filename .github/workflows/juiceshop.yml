@@ -103,7 +103,7 @@ jobs:
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
       with:
-        target-url: http://$NONPROD_URL
+        target-url: 'http://juiceshop.ozsec.net:8880'
 
     - name: JuiceShop - Dastardly | Publish Test Report
       if: always() # Forces this step to always run
