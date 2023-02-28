@@ -14,6 +14,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    environment: JuiceShop
     steps:
     - uses: actions/checkout@v3
 
@@ -24,20 +25,6 @@ jobs:
         ping -c 4 localhost
         docker pull bkimminich/juice-shop:latest
         docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
-
-    - name: JuiceShop - Dastardly | Web Application Scanning
-      uses: PortSwigger/dastardly-github-action@main
-      #continue-on-error: true 
-      continue-on-error: false #Quebra esteira
-      with:
-        target-url: 'http://juiceshop:3000'
-
-    - name: JuiceShop - Dastardly | Publish Test Report
-      if: always() # Forces this step to always run
-      uses: mikepenz/action-junit-report@v3
-      with:
-        report_paths: '**/dastardly-report.xml' # You need to update this path if you pass in a different output filename to the Dastardly action
-        require_tests: true
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
@@ -50,5 +37,72 @@ jobs:
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
 
+    - name: JuiceShop - Cleaning and preparing PRE-PROD server.
+      env:
+        SSH_SERVER: ${{ secrets.SSH_SERVER }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+      run: |
+        echo "Deploying SSH Key"
+        echo "-----BEGIN OPENSSH PRIVATE KEY-----" > /tmp/server.key
+        echo $SSH_KEY | base64 -w0 | base64 --decode | tr " " "\n" | tail -n +5 | head -n-4 >> /tmp/server.key
+        echo "-----END OPENSSH PRIVATE KEY-----" >> /tmp/server.key
+        sudo chmod 600 /tmp/server.key
+        cat /tmp/server.key
+        echo "🐳 Listing running containers."
+        parallel-ssh -t 300  -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'docker ps -q | \
+          tee /tmp/running_containers.txt'        
+        echo "🐳 Killing all running containers."
+        parallel-ssh -t 300 -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'while read -r line; do \
+          docker kill "$line" ; done < /tmp/running_containers.txt'
+        
+        echo "🐳 Removing all docker containers."
+        echo "Listing running containers."
+        parallel-ssh -t 300  -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'docker ps -a -q | \
+          tee /tmp/docker_containers.txt'
+        parallel-ssh -t 300 -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'while read -r line; do \
+          docker rm "$line" ; done < /tmp/docker_containers.txt'
+        
+        echo "🐳 Removing all docker images."
+        parallel-ssh -t 300  -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'docker images -a -q | \
+          tee /tmp/docker_images.txt'
+        parallel-ssh -t 300 -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'while read -r line; do \
+          docker rmi "$line" ; done < /tmp/docker_images.txt'
+       
+        echo "🐳 Pruning everything."
+        parallel-ssh -t 300 -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" 'docker system prune -a -f'
+      
+    - name: JuiceShop - Deploying in PRE-PROD environment.
+      env:
+        SSH_SERVER: ${{ secrets.SSH_SERVER }}
+        SSH_USER: ${{ secrets.SSH_USER }}
+        SSH_KEY: ${{ secrets.SSH_KEY }}
+        NONPROD_URL: ${{ vars.NONPROD_URL }}
+      run: |
+        parallel-ssh -t 300 -H $SSH_USER@$SSH_SERVER -i -x "-i /tmp/server.key -o StrictHostKeyChecking=no" \
+        'docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop ; sleep 60'
+       
+        echo -e "Waiting for the application deployment..." ; spin='-\|/' && i=0 && until curl http://$NONPROD_URL --connect-timeout 3 2>/dev/null ; \
+          do i=$(( (i+1) %4 )) ;  printf "\r${spin:$i:1}" sleep .1 ; done ;echo -e "\n\nApplication ready for scanning!"
+        echo "Built and available at port 8880/tcp."
+
+
+    - name: JuiceShop - Dastardly | Web Application Scanning
+      env:
+        NONPROD_URL: ${{ vars.NONPROD_URL }}
+      uses: PortSwigger/dastardly-github-action@main
+      #continue-on-error: true 
+      continue-on-error: false #Quebra esteira
+      with:
+        target-url: 'http://$NONPROD_URL'
+
+    - name: JuiceShop - Dastardly | Publish Test Report
+      if: always() # Forces this step to always run
+      uses: mikepenz/action-junit-report@v3
+      with:
+        report_paths: '**/dastardly-report.xml' # You need to update this path if you pass in a different output filename to the Dastardly action
+        require_tests: true
+
+    
 
 
