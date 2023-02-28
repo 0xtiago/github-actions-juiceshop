@@ -19,7 +19,7 @@ jobs:
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
-       with:
+      with:
         image-ref: 'docker.io/bkimminich/juice-shop:latest:${{ github.sha }}'
         format: 'table'
         exit-code: '1'
