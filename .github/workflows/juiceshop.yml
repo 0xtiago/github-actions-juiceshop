@@ -98,7 +98,7 @@ jobs:
 
     - name: JuiceShop - Dastardly | Web Application Scanning
       env:
-        NONPROD_URL: ${{ vars.NONPROD_URL }}
+        NONPROD_URL: ${{ vars.NONPROD_URL }} #NAO FUNCIONA NESSE FDP!!!
       uses: PortSwigger/dastardly-github-action@main
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
