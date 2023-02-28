@@ -17,12 +17,17 @@ jobs:
     environment: JuiceShop
     steps:
     - uses: actions/checkout@v3
+    - name: ⚙️ Setup Ubuntu 22.04 Runner
+      run: |
+        sudo apt update
+        sudo apt install -y sudo net-tools wget git curl p7zip-full ca-certificates apt-transport-https software-properties-common \
+          pssh python3 python3-pip python-setuptools
 
     - name: JuiceShop - Build image
       run: |
-        sudo apt update ; sudo apt install net-tools -y
-        ifconfig
-        ping -c 4 localhost
+        # sudo apt update ; sudo apt install net-tools -y
+        # ifconfig
+        # ping -c 4 localhost
         docker pull bkimminich/juice-shop:latest
         docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
 
@@ -102,7 +107,3 @@ jobs:
       with:
         report_paths: '**/dastardly-report.xml' # You need to update this path if you pass in a different output filename to the Dastardly action
         require_tests: true
-
-    
-
-
