@@ -1,0 +1,12 @@
+name: 🐞 Vulnerable JuiceShop Workflow.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - apps/juice-shop/**
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - apps/juice-shop/**
