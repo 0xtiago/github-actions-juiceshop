@@ -19,9 +19,10 @@ jobs:
 
     - name: JuiceShop - Build image
       run: |
-        apt update ; apt install net-tools -y
+        sudo apt update ; sudo apt install net-tools -y
+        ping -c 4 localhost
         docker pull bkimminich/juice-shop:latest
-        docker run -d --rm -p 80:3000 bkimminich/juice-shop:latest
+        docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
@@ -39,5 +40,5 @@ jobs:
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
       with:
-        target-url: 'http://localhost'
+        target-url: 'http://localhost:3000'
 
