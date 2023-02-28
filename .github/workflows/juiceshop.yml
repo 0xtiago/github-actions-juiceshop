@@ -22,7 +22,7 @@ jobs:
         sudo apt update ; sudo apt install net-tools -y
         ping -c 4 localhost
         docker pull bkimminich/juice-shop:latest
-        docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest
+        docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest --name juiceshop
 
     - name: JuiceShop - Trivy | Container Vulnerability Scan
       uses: aquasecurity/trivy-action@master
@@ -36,9 +36,18 @@ jobs:
         severity: 'CRITICAL,HIGH'
 
     - name: JuiceShop - Dastardly | Web Application Scanning
+      # run: |
+      #   docker run -d --rm -p 3000:3000 bkimminich/juice-shop:latest
       uses: PortSwigger/dastardly-github-action@main
       #continue-on-error: true 
       continue-on-error: false #Quebra esteira
       with:
-        target-url: 'http://localhost:3000'
+        target-url: 'http://juiceshop:3000'
+
+    - name: JuiceShop - Dastardly | Publish Test Report
+      if: always() # Forces this step to always run
+      uses: mikepenz/action-junit-report@v3
+      with:
+        report_paths: '**/dastardly-report.xml' # You need to update this path if you pass in a different output filename to the Dastardly action
+        require_tests: true
 
