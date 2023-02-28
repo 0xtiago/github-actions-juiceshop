@@ -28,8 +28,15 @@ jobs:
         image-ref: 'docker.io/bkimminich/juice-shop:latest'
         format: 'table'
         exit-code: '0'
-        #exit-code: '1'
+        #exit-code: '1' # Quebrar build caso sejam encontradas vulnerabilidades com as severidades descritas
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
+    - name: JuiceShop | Run Dastardly Web Application Scanning
+      uses: PortSwigger/dastardly-github-action@main
+      #continue-on-error: true 
+      continue-on-error: false #Quebra esteira
+      with:
+        target-url: 'http://localhost'
 
